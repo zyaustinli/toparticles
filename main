@@ -1,0 +1,48 @@
+from bs4 import BeautifulSoup
+import requests
+from operator import itemgetter
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+
+response = requests.get("https://news.ycombinator.com/")
+yc_web_page = response.text
+
+soup  = BeautifulSoup(yc_web_page, "html.parser")
+articles = soup.find_all(name = "a", rel = "noreferrer")
+article_texts=[]
+article_links=[]
+
+article_ranked = []
+
+article_upvote = [int(score.getText().split()[0]) for score in soup.find_all(name = "span", class_ = "score")]
+
+
+for i in range(len(articles)):
+    
+    article_text = articles[i].getText()
+    #article_texts.append(article_text)
+
+    article_link = articles[i].get("href")
+    #article_links.append(article_link)
+    curr = [article_text, article_link, article_upvote[i]]
+    article_ranked.append(curr)
+
+res = sorted(article_ranked, key= itemgetter(2), reverse=True)[:10]
+#print(res)
+
+x_int = []
+y_int = []
+
+for i in range(10):
+    x_int.append(res[i][0])
+    y_int.append(res[i][2])
+
+y= np.array(y_int)
+x = np.array(x_int)
+plt.rcParams.update({'font.size': 7})
+
+plt.barh(x,y)
+plt.ylabel("Articles", fontsize = 5)
+plt.xlabel("Votes", fontsize= 10)
+plt.show()
